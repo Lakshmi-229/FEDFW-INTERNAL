@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        header {
+            background: #243b70;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        nav {
+            background: #172554;
+            text-align: center;
+            padding: 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 15px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 25px auto;
+            padding: 20px;
+        }
+
+        .form-box, .event-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #00000012;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        input, textarea {
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #243b70;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .delete {
+            background: #dc2626;
+        }
+
+        a {
+            color: #243b70;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Admin Dashboard</h1>
+        <p>Manage College Events</p>
+    </header>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="admin.html">Admin</a>
+        <a href="user.html">User</a>
+    </nav>
+
+    <div class="container">
+        <div class="form-box">
+            <h2>Add New Event</h2>
+
+            <form id="eventForm">
+                <input type="text" id="eventName"
+                    placeholder="Event Name" required>
+
+                <input type="date" id="eventDate" required>
+
+                <input type="text" id="eventVenue"
+                    placeholder="Event Venue" required>
+
+                <textarea id="eventDescription"
+                    placeholder="Event Description" required></textarea>
+
+                <button type="submit">Add Event</button>
+            </form>
+        </div>
+
+        <h2>Manage Events</h2>
+        <div id="eventList"></div>
+    </div>
+
+    <script>
+        function getEvents() {
+            return JSON.parse(localStorage.getItem("collegeEvents")) || [];
+        }
+
+        function saveEvents(events) {
+            localStorage.setItem("collegeEvents", JSON.stringify(events));
+        }
+
+        const form = document.getElementById("eventForm");
+
+        form.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const events = getEvents();
+
+            const event = {
+                id: Date.now(),
+                name: document.getElementById("eventName").value.trim(),
+                date: document.getElementById("eventDate").value,
+                venue: document.getElementById("eventVenue").value.trim(),
+                description: document.getElementById("eventDescription").value.trim()
+            };
+
+            events.push(event);
+            saveEvents(events);
+
+            alert("Event added successfully!");
+            form.reset();
+            displayEvents();
+        });
+
+        function displayEvents() {
+            const events = getEvents();
+            const list = document.getElementById("eventList");
+
+            list.replaceChildren();
+
+            if (events.length === 0) {
+                list.textContent = "No events available.";
+                return;
+            }
+
+            events.forEach(function(event) {
+                const card = document.createElement("div");
+                card.className = "event-card";
+
+                const title = document.createElement("h3");
+                title.textContent = event.name;
+
+                const date = document.createElement("p");
+                date.textContent = "Date: " + event.date;
+
+                const venue = document.createElement("p");
+                venue.textContent = "Venue: " + event.venue;
+
+                const description = document.createElement("p");
+                description.textContent = event.description;
+
+                const btn = document.createElement("button");
+                btn.className = "delete";
+                btn.textContent = "Delete Event";
+
+                btn.addEventListener("click", function() {
+                    const updated = getEvents().filter(
+                        item => item.id !== event.id
+                    );
+                    saveEvents(updated);
+                    displayEvents();
+                });
+
+                card.append(title, date, venue, description, btn);
+                list.appendChild(card);
+            });
+        }
+
+        displayEvents();
+    </script>
+
+</body>
+</html>

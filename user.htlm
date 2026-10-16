@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Events - User</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        header {
+            background: #243b70;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        nav {
+            background: #172554;
+            text-align: center;
+            padding: 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 15px;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 25px auto;
+            padding: 20px;
+        }
+
+        .event-card, .register-box {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #00000012;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 15px;
+        }
+
+        input {
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #243b70;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4361a5;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        #message {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>College Events</h1>
+        <p>Explore and Register for Events</p>
+    </header>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="admin.html">Admin</a>
+        <a href="user.html">User</a>
+    </nav>
+
+    <div class="container">
+        <h2>Available Events</h2>
+        <div id="eventList"></div>
+
+        <div class="register-box">
+            <h2>Event Registration</h2>
+
+            <form id="registrationForm">
+                <input type="text" id="userName"
+                    placeholder="Enter Your Name" required>
+
+                <input type="email" id="userEmail"
+                    placeholder="Enter Your Email" required>
+
+                <select id="eventSelect" required>
+                    <option value="">Select an Event</option>
+                </select>
+
+                <button type="submit">Register Now</button>
+            </form>
+
+            <p id="message" aria-live="polite"></p>
+        </div>
+    </div>
+
+    <script>
+        function getEvents() {
+            return JSON.parse(localStorage.getItem("collegeEvents")) || [];
+        }
+
+        function displayEvents() {
+            const events = getEvents();
+            const list = document.getElementById("eventList");
+            const select = document.getElementById("eventSelect");
+
+            list.replaceChildren();
+            select.replaceChildren();
+
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "Select an Event";
+            select.appendChild(defaultOption);
+
+            if (events.length === 0) {
+                list.textContent = "No events available. Please check later.";
+                return;
+            }
+
+            events.forEach(function(event) {
+                const card = document.createElement("div");
+                card.className = "event-card";
+
+                const title = document.createElement("h3");
+                title.textContent = event.name;
+
+                const date = document.createElement("p");
+                date.textContent = "Date: " + event.date;
+
+                const venue = document.createElement("p");
+                venue.textContent = "Venue: " + event.venue;
+
+                const description = document.createElement("p");
+                description.textContent = event.description;
+
+                card.append(title, date, venue, description);
+                list.appendChild(card);
+
+                const option = document.createElement("option");
+                option.value = String(event.id);
+                option.textContent = event.name + " - " + event.date;
+                select.appendChild(option);
+            });
+        }
+
+        document.getElementById("registrationForm")
+            .addEventListener("submit", function(e) {
+                e.preventDefault();
+
+                const name = document.getElementById("userName").value.trim();
+                const email = document.getElementById("userEmail").value.trim();
+                const eventId = document.getElementById("eventSelect").value;
+
+                const events = getEvents();
+                const selectedEvent = events.find(
+                    event => String(event.id) === eventId
+                );
+
+                if (!selectedEvent) {
+                    document.getElementById("message").textContent =
+                        "Please select a valid event.";
+                    return;
+                }
+
+                const registrations = JSON.parse(
+                    localStorage.getItem("eventRegistrations") || "[]"
+                );
+
+                const alreadyRegistered = registrations.some(
+                    r => r.email.toLowerCase() === email.toLowerCase()
+                        && r.eventId === selectedEvent.id
+                );
+
+                if (alreadyRegistered) {
+                    document.getElementById("message").textContent =
+                        "You have already registered for this event.";
+                    return;
+                }
+
+                registrations.push({
+                    name: name,
+                    email: email,
+                    eventId: selectedEvent.id,
+                    eventName: selectedEvent.name
+                });
+
+                localStorage.setItem(
+                    "eventRegistrations",
+                    JSON.stringify(registrations)
+                );
+
+                document.getElementById("message").textContent =
+                    "Registration successful for " + selectedEvent.name + "!";
+
+                this.reset();
+            });
+
+        displayEvents();
+    </script>
+
+</body>
+</html>
